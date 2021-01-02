@@ -2,18 +2,20 @@
 
 A very simple Json Object helper in Java.
 
-Currently, all features are implemented except floating point numbers. I still have some concerns about floating point number parsing and storage.
+All [JSON features](https://www.json.org/json-en.html) are implemented.
 
-Performance Evaluation
+<br/>
 
-Json Helper - Serialize Performance: 4430 ms
+Performance - Compare with Jackson and Gson
 
-Json Helper - Deserialize Performance: 6340 ms
+Json Helper - Serialize Performance: 2655 ms
 
-Jackson - Serialize Performance: 3434 ms
+Json Helper - Deserialize Performance: 3684 ms
 
-Jackson - Deserialize Performance: 5920 ms
+Jackson - Serialize Performance: 2184 ms
 
-Gson - Serialize Performance: 5882 ms
+Jackson - Deserialize Performance: 3790 ms
 
-Gson - Deserialize Performance: 8683 ms
+Gson - Serialize Performance: 3067 ms
+
+Gson - Deserialize Performance: 5001 ms
