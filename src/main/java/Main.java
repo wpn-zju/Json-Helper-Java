@@ -92,7 +92,7 @@ public class Main {
             str3 = test3.toString();
             str4 = test4.toString();
             str5 = test5.toString();
-            str6 = test6.toString();
+            //str6 = test6.toString();
         }
         Instant end = Instant.now();
         System.out.println("Json Helper - Serialize Performance: " + (end.toEpochMilli() - start.toEpochMilli()) + " ms");
@@ -104,7 +104,7 @@ public class Main {
             test3 = JsonObject.create(CASE_3);
             test4 = JsonObject.create(CASE_4);
             test5 = JsonObject.create(CASE_5);
-            test6 = JsonObject.create(CASE_6);
+            //test6 = JsonObject.create(CASE_6);
         }
         end = Instant.now();
         System.out.println("Json Helper - Deserialize Performance: " + (end.toEpochMilli() - start.toEpochMilli()) + " ms");

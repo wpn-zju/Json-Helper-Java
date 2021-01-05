@@ -7,6 +7,10 @@ public class JsonNumber extends Number {
         this.value = value;
     }
 
+    public JsonNumber(JsonNumber that) {
+        this.value = that.value;
+    }
+
     @Override
     public int intValue() {
         try {

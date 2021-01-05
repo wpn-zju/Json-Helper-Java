@@ -34,7 +34,7 @@ public class JsonObject {
             if (value + addend > length) {
                 throw new JsonParseException("Parse Error - Index overflow.");
             } else {
-                value = value + addend;
+                value += addend;
             }
         }
     }
@@ -63,23 +63,19 @@ public class JsonObject {
     }
 
     public JsonObject(int value) {
-        jsonType = JsonType.Number;
-        object = new JsonNumber(String.valueOf(value));
+        this(new JsonNumber(String.valueOf(value)));
     }
 
     public JsonObject(long value) {
-        jsonType = JsonType.Number;
-        object = new JsonNumber(String.valueOf(value));
+        this(new JsonNumber(String.valueOf(value)));
     }
 
     public JsonObject(float value) {
-        jsonType = JsonType.Number;
-        object = new JsonNumber(String.valueOf(value));
+        this(new JsonNumber(String.valueOf(value)));
     }
 
     public JsonObject(double value) {
-        jsonType = JsonType.Number;
-        object = new JsonNumber(String.valueOf(value));
+        this(new JsonNumber(String.valueOf(value)));
     }
 
     public JsonObject(JsonNumber value) {
@@ -113,7 +109,7 @@ public class JsonObject {
                 this.object = that.getBool();
                 break;
             case Number:
-                this.object = that.getNumber();
+                this.object = new JsonNumber(that.getNumber());
                 break;
             case String:
                 this.object = that.getString();
@@ -136,8 +132,7 @@ public class JsonObject {
             if (index.get() == input.length()) {
                 return result;
             } else {
-                throw new JsonParseException(
-                        String.format("Parse Error - Redundant component at position %d, source %s.", index.get(), input));
+                throw new JsonParseException(buildErrorMessage("Redundant component", input, index.get()));
             }
         } catch (JsonParseException e) {
             throw new JsonIOException(e.getMessage());
@@ -284,52 +279,59 @@ public class JsonObject {
                 if (input.charAt(index.saveGet()) >= '0' && input.charAt(index.saveGet()) <= '9') {
                     return new JsonObject(JsonType.Number, parseNumber(input, index));
                 } else {
-                    throw new JsonParseException(String.format("Parse Error - Read type error at position %d, source %s.", index.get(), input));
+                    throw new JsonParseException(buildErrorMessage("Read type error", input, index.get()));
                 }
         }
     }
 
     private static Object parseNull(String input, Index index) throws JsonParseException {
-        int startIndex = index.get();
-        index.plus("null".length());
-        if (input.charAt(startIndex) != 'n') throw new JsonParseException(
-                String.format("Parse Error - Invalid null node at position %d, source %s.", startIndex, input));
-        if (input.charAt(startIndex + 1) != 'u') throw new JsonParseException(
-                String.format("Parse Error - Invalid null node at position %d, source %s.", startIndex + 1, input));
-        if (input.charAt(startIndex + 2) != 'l') throw new JsonParseException(
-                String.format("Parse Error - Invalid null node at position %d, source %s.", startIndex + 2, input));
-        if (input.charAt(startIndex + 3) != 'l') throw new JsonParseException(
-                String.format("Parse Error - Invalid null node at position %d, source %s.", startIndex + 3, input));
+        if (input.charAt(index.saveGet()) != 'n') throw new JsonParseException(
+                buildErrorMessage("Invalid null node", input, index.get()));
+        index.increment();
+        if (input.charAt(index.saveGet()) != 'u') throw new JsonParseException(
+                buildErrorMessage("Invalid null node", input, index.get()));
+        index.increment();
+        if (input.charAt(index.saveGet()) != 'l') throw new JsonParseException(
+                buildErrorMessage("Invalid null node", input, index.get()));
+        index.increment();
+        if (input.charAt(index.saveGet()) != 'l') throw new JsonParseException(
+                buildErrorMessage("Invalid null node", input, index.get()));
+        index.increment();
         return null;
     }
 
     private static boolean parseBoolean(String input, Index index) throws JsonParseException {
-        boolean ret = input.charAt(index.saveGet()) == 't';
-        int startIndex = index.get();
-        if (ret) {
-            index.plus("true".length());
-            if (input.charAt(startIndex) != 't') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex, input));
-            if (input.charAt(startIndex + 1) != 'r') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 1, input));
-            if (input.charAt(startIndex + 2) != 'u') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 2, input));
-            if (input.charAt(startIndex + 3) != 'e') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 3, input));
+        boolean result = input.charAt(index.saveGet()) == 't';
+        if (result) {
+            if (input.charAt(index.saveGet()) != 't') throw new JsonParseException(
+                    buildErrorMessage("Invalid true node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 'r') throw new JsonParseException(
+                    buildErrorMessage("Invalid true node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 'u') throw new JsonParseException(
+                    buildErrorMessage("Invalid true node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 'e') throw new JsonParseException(
+                    buildErrorMessage("Invalid true node", input, index.get()));
         } else {
-            index.plus("false".length());
-            if (input.charAt(startIndex) != 'f') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex, input));
-            if (input.charAt(startIndex + 1) != 'a') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 1, input));
-            if (input.charAt(startIndex + 2) != 'l') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 2, input));
-            if (input.charAt(startIndex + 3) != 's') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 3, input));
-            if (input.charAt(startIndex + 4) != 'e') throw new JsonParseException(
-                    String.format("Parse Error - Invalid boolean node at position %d, source %s.", startIndex + 4, input));
+            if (input.charAt(index.saveGet()) != 'f') throw new JsonParseException(
+                    buildErrorMessage("Invalid false node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 'a') throw new JsonParseException(
+                    buildErrorMessage("Invalid false node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 'l') throw new JsonParseException(
+                    buildErrorMessage("Invalid false node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 's') throw new JsonParseException(
+                    buildErrorMessage("Invalid false node", input, index.get()));
+            index.increment();
+            if (input.charAt(index.saveGet()) != 'e') throw new JsonParseException(
+                    buildErrorMessage("Invalid false node", input, index.get()));
         }
-        return ret;
+        index.increment();
+        return result;
     }
 
     private static JsonNumber parseNumber(String input, Index index) throws JsonParseException {
@@ -353,8 +355,7 @@ public class JsonObject {
                 sb.append(input.charAt(currentIndex++));
             }
         } else {
-            throw new JsonParseException(
-                    String.format("Parse Error - Incomplete number at position %d, source %s.", currentIndex, input));
+            throw new JsonParseException(buildErrorMessage("Incomplete number", input, currentIndex));
         }
 
         // Fraction Part
@@ -370,8 +371,7 @@ public class JsonObject {
                     sb.append(input.charAt(currentIndex++));
                 }
             } else {
-                throw new JsonParseException(
-                        String.format("Parse Error - Incomplete fraction at position %d, source %s.", currentIndex, input));
+                throw new JsonParseException(buildErrorMessage("Incomplete fraction", input, currentIndex));
             }
         }
 
@@ -393,8 +393,7 @@ public class JsonObject {
                     sb.append(input.charAt(currentIndex++));
                 }
             } else {
-                throw new JsonParseException(
-                        String.format("Parse Error - Incomplete exponent at position %d, source %s.", currentIndex, input));
+                throw new JsonParseException(buildErrorMessage("Incomplete exponent", input, currentIndex));
             }
         }
 
@@ -403,7 +402,7 @@ public class JsonObject {
         return new JsonNumber(sb.toString());
     }
 
-    private static char hexCharToUChar(char input) throws JsonParseException {
+    private static char hexToUChar(char input) throws JsonParseException {
         if (input >= 'A' && input <= 'F') {
             return (char) (input - 'A' + 10);
         } else if (input >= 'a' && input <= 'f') {
@@ -417,8 +416,7 @@ public class JsonObject {
 
     private static String parseString(String input, Index index) throws JsonParseException {
         if (input.charAt(index.saveGet()) != '"') {
-            throw new JsonParseException(
-                    String.format("Parse Error - Invalid string at position %d, source %s.", index.get(), input));
+            throw new JsonParseException(buildErrorMessage("Invalid string", input, index.get()));
         }
         index.increment();
         StringBuilder sb = new StringBuilder();
@@ -457,23 +455,23 @@ public class JsonObject {
                     case 'u': {
                         try {
                             index.increment();
-                            char h1 = hexCharToUChar(input.charAt(index.saveGet()));
+                            char h1 = hexToUChar(input.charAt(index.saveGet()));
                             index.increment();
-                            char h2 = hexCharToUChar(input.charAt(index.saveGet()));
+                            char h2 = hexToUChar(input.charAt(index.saveGet()));
                             index.increment();
-                            char h3 = hexCharToUChar(input.charAt(index.saveGet()));
+                            char h3 = hexToUChar(input.charAt(index.saveGet()));
                             index.increment();
-                            char h4 = hexCharToUChar(input.charAt(index.saveGet()));
+                            char h4 = hexToUChar(input.charAt(index.saveGet()));
                             sb.append((char) ((h1 << 12) + (h2 << 8) + (h3 << 4) + h4));
                         } catch (JsonParseException e) {
                             throw new JsonParseException(
-                                    String.format("Parse Error - Invalid Unicode escaped character at position %d, source %s.", index.get(), input));
+                                    buildErrorMessage("Invalid Unicode escaped character", input, index.get()));
                         }
                         break;
                     }
                     default:
                         throw new JsonParseException(
-                                String.format("Parse Error - Invalid escaped character at position %d, source %s.", index.get(), input));
+                                buildErrorMessage("Invalid escaped character", input, index.get()));
                 }
             } else {
                 sb.append(input.charAt(index.saveGet()));
@@ -486,8 +484,7 @@ public class JsonObject {
 
     private static List<JsonObject> parseList(String input, Index index) throws JsonParseException {
         if (input.charAt(index.saveGet()) != '[') {
-            throw new JsonParseException(
-                    String.format("Parse Error - Invalid list at position %d, source %s.", index.get(), input));
+            throw new JsonParseException(buildErrorMessage("Invalid list", input, index.get()));
         }
         index.increment();
         List<JsonObject> list = new ArrayList<>();
@@ -501,7 +498,7 @@ public class JsonObject {
                     index.increment();
                 } else {
                     throw new JsonParseException(
-                            String.format("Parse Error - Missing comma in list at position %d, source %s.", index.get(), input));
+                            buildErrorMessage("Missing comma in list", input, index.get()));
                 }
             }
         }
@@ -511,8 +508,7 @@ public class JsonObject {
 
     private static Map<String, JsonObject> parseObject(String input, Index index) throws JsonParseException {
         if (input.charAt(index.saveGet()) != '{') {
-            throw new JsonParseException(
-                    String.format("Parse Error - Invalid object at position %d, source %s.", index.get(), input));
+            throw new JsonParseException(buildErrorMessage("Invalid object", input, index.get()));
         }
         index.increment();
         Map<String, JsonObject> map = new LinkedHashMap<>();
@@ -524,7 +520,7 @@ public class JsonObject {
                 readWhitespace(input, index);
                 if (input.charAt(index.saveGet()) != ':') {
                     throw new JsonParseException(
-                            String.format("Parse Error - Missing colon at position %d, source %s.", index.get(), input));
+                            buildErrorMessage("Missing colon in object", input, index.get()));
                 }
                 index.increment();
                 map.put(key, parseValue(input, index));
@@ -534,12 +530,20 @@ public class JsonObject {
                     index.increment();
                 } else {
                     throw new JsonParseException(
-                            String.format("Parse Error - Missing comma in object at position %d, source %s.", index.get(), input));
+                            buildErrorMessage("Missing comma in object", input, index.get()));
                 }
             }
         }
         index.increment();
         return map;
+    }
+
+    private static String buildErrorMessage(String errorType, String source, int position)
+    {
+        int nearStart = position >= 3 ? position - 3 : 0;
+        int nearEnd = position + 3 < source.length() ? position + 3 : source.length() - 1;
+        return String.format("Parse Error - %s at position %d near \"%s\", source = \"%s\".",
+                errorType, position, source.substring(nearStart, nearEnd + 1), source);
     }
 
     private static void appendStringEscaped(StringBuilder sb, String input) {
